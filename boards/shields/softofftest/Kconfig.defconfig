@@ -1,0 +1,10 @@
+if SHIELD_SUPERTEST
+
+config ZMK_KEYBOARD_NAME
+    default "Soft Off Tester - n!n"
+
+
+config ZMK_PM_SOFT_OFF
+    def_bool y
+
+endif
