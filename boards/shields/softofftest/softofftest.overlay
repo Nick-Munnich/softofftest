@@ -8,13 +8,51 @@
 
 / {
     chosen {
-        zmk,kscan = &kscan0;
+        zmk,kscan = &wrapped_kscan;
+        zmk,matrix_transform = &default_transform;
     };
 
-    kscan0: kscan_0 {
+
+	default_transform: keymap_transform_0 {
+		compatible = "zmk,matrix-transform";
+		columns = <2>;
+		rows = <2>;
+		map = <
+			RC(0,0)	RC(0,1)
+			RC(1,0)	RC(1,1)	
+			>;
+	};
+
+    behaviors {
+        hw_soft_off: hw_soft_off {
+            compatible = "zmk,behavior-soft-off";
+            #binding-cells = <0>;
+            hold-time-ms = <2000>;
+        };
+    };
+
+    keys {
+        compatible = "gpio-keys";
+        status = "okay";
+        wakeup_key: wakeup_key {
+            gpios = <&gpio0 2 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+        };
+    };
+
+    wakeup_source: wakeup_source {
+        compatible = "zmk,gpio-key-wakeup-trigger";
+        status = "okay";
+        trigger = <&wakeup_key>;
+        wakeup-source;
+        extra-gpios = <&gpio0 17 GPIO_ACTIVE_HIGH>;
+    };
+
+    kscan: kscan {
         compatible = "zmk,kscan-gpio-matrix";
         diode-direction = "col2row";
-
+        wakeup-source;
+        debounce-press-ms = <1>;
+        debounce-release-ms = <5>;
         col-gpios
             = <&gpio1 6 GPIO_ACTIVE_HIGH>
             , <&gpio1 4 GPIO_ACTIVE_HIGH>
@@ -23,57 +61,24 @@
         row-gpios
             = <&gpio0 10 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
             , <&gpio0 9 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            , <&gpio0 2 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
             ;
     };
 
-    keys {
-        compatible = "gpio-keys";
-        soft_off_key: soft_off_key {
-            gpios = <&gpio0 11 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
-        };
-        soft_off_key2: soft_off_key2 {
-            gpios = <&gpio1 0 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
-        };
-    };
-
-    behaviors {
-        hw_soft_off: hw_soft_off {
-            compatible = "zmk,behavior-soft-off";
-            #binding-cells = <0>;
-            hold-time-ms = <100>;
-        };
-        hw_soft_off2: hw_soft_off2 {
-            compatible = "zmk,behavior-soft-off";
-            #binding-cells = <0>;
-            hold-time-ms = <100>;
-        };
-    };
-
-    soft_off_direct_kscan: soft_off_direct_kscan {
-        compatible = "zmk,kscan-gpio-direct";
-        input-keys = <&soft_off_key>, <&soft_off_key2>;
-        wakeup-source;
-    };
-
-    soft_off_sideband_behaviors {
+    wrapped_kscan: side_band_behavior_triggers {
         compatible = "zmk,kscan-sideband-behaviors";
-        kscan = <&soft_off_direct_kscan>;
-        auto-enable;
         wakeup-source;
-        soft_off {
-            column = <0>;
-            row = <0>;
+        kscan = <&kscan>;
+        soft_off_callback {
+            column = <1>;
+            row = <2>;
             bindings = <&hw_soft_off>;
-        };
-        soft_off2 {
-            column = <0>;
-            row = <1>;
-            bindings = <&hw_soft_off2>;
         };
     };
 
     soft_off_wakers {
         compatible = "zmk,soft-off-wakeup-sources";
-        wakeup-sources = <&soft_off_direct_kscan>;
+        wakeup-sources = <&wakeup_source>;
     };
 };
+

@@ -1,6 +1,6 @@
 file_format: "1"
-id: supertest
-name: Supermini_Test
+id: softofftest
+name: Soft_Off_Test
 type: shield
 url: https://github.com/foostan/crkbd/
 requires: [pro_micro]
